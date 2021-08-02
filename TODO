@@ -1,0 +1,12 @@
+# Create minimal Botan setup (delete unnesessary modules from build)
+
+Smth like this:
+  ./configure.py --minimized-build --enable-modules=rsa,eme_oaep,emsa_pssr
+
+https://botan.randombit.net/handbook/building.html
+
+# To write library 
+
+# To write cmd tool for signing
+
+# Catch exceptions
