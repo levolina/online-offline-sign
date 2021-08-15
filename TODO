@@ -6,7 +6,10 @@ Smth like this:
 https://botan.randombit.net/handbook/building.html
 
 # To write library 
+1) Write interface for at least 1 signature algorithm. 
+2) To run phases in parallel threads. 
 
-# To write cmd tool for signing
-
-# Catch exceptions
+3) Catch exception
+4) Write interface for all signature algo (if possible), test correctness. 
+5) Write another trapdoor hash function
+6) Check perfomance of new signature generation algorithm. To compare with function in Botan. Maybe use Google benchmark or Visual Studio profiler or smth else. 

@@ -31,7 +31,10 @@
 *.out
 *.app
 
-# Dependencies 
-deps/*
-lib/*
-.vscode/*
+# Pre-build and build
+bin
+obj
+
+# Editor specific dir
+.vscode
+.vs

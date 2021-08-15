@@ -1,0 +1,3 @@
+[submodule "deps/botan"]
+	path = deps/botan
+	url = https://github.com/randombit/botan.git

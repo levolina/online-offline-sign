@@ -6,20 +6,23 @@ Currently on investigation phase
 
 * Botan
 
+Download from official repository (https://github.com/randombit/botan) and build. 
+
+Supported signature algorithms: RSA, DSA, ECDSA, ECKCDSA, ECGDSA, GOST 34.10-2001.
+
 On Linux:
 
-in deps/botan run command:
 ```
-./configure.py --prefix=../../
+./configure.py --prefix=
 make
 make check
 ```
 
 P.S. needs at least gcc 8.0
 
-On Windows (not checked before):
+On Windows:
 ```
-python configure.py --cc=msvc --os=windows
+python configure.py --cc=msvc --os=windows --cpu=generic --prefix=
 nmake
 nmake check
 nmake install
