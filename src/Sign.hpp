@@ -18,10 +18,11 @@ enum SignAlgo
 * General method for combining any trapdoor hash family and any signature scheme 
 * to get an online/offline signature scheme
 */
+
 class ISigner
 {
 protected:
-	ITrapdoorHash *m_hash = nullptr;
+	TrapdoorHash *m_hash = nullptr;
 	Botan::Private_Key *m_key = nullptr; 
 public:
 	/**
@@ -29,7 +30,7 @@ public:
 	 * 1) Generate a pair of signing and verification key (SK, VK)
 	 * 2) Generate a pair of hash key and trapdoor key (HK, TK)
 	*/
-	virtual void generate_key(size_t key_len, SignAlgo sign_type, TrapdoorAlgo hash_type) = 0;
+	virtual void generate_key(size_t key_len, SignAlgo sign_type) = 0;
 
 	/** 
 	 * The Signing Algorithm
@@ -66,7 +67,7 @@ class Signer : public ISigner {
 		Signer& operator=(const Signer&) = delete;
 		Signer& operator=(Signer&&) = delete;
 
-		void generate_key(size_t key_len, SignAlgo sign_type, TrapdoorAlgo hash_type);
+		void generate_key(size_t key_len, SignAlgo sign_type);
 
 		/**
 		* Sign a message all in one go

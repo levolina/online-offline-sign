@@ -23,6 +23,7 @@ LIB         := -lstdc++ -lbotan-3
 INC         := -I$(INCDIR) -I/usr/local/include
 INCDEP      := -I$(INCDIR)
 LDFLAGS     := -L$(LIBDIR)
+SHARE_LIBS  := -Wl,-R$(LIBDIR)
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
@@ -54,7 +55,7 @@ cleaner: clean
 
 #Link
 $(TARGET): $(OBJECTS)
-	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LDFLAGS) $(LIB) 
+	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LDFLAGS) $(LIB) $(SHARE_LIBS)
 
 #Compile
 $(OBJDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)

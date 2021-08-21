@@ -5,15 +5,18 @@
 
 void ut_trapdoor_hash()
 {
-	std::cout << "UT tests for TrapdoorHash class" << std::endl;
-	TrapdoorHash_DLA hash_dla;
-	Botan::secure_vector<uint8_t> result;
-	unsigned char msg[] = "test";
-	unsigned int random_seed = 5767;
-	std::cout << "Generated key: " << std::endl;
-	hash_dla.generate_key(TEST_SIZE);
-	hash_dla.debug_print();
-	result = hash_dla.hash(msg, sizeof(msg)+1, reinterpret_cast<uint8_t*>(&random_seed), sizeof(random_seed));
+	TH_PrivateKey private_key(251387, 62849, 36711, 31862); 
+	private_key.print(); 
+
+	int test = 64; 
+	uint8_t* test_ptr = reinterpret_cast<uint8_t*>(&test);
+	std::vector<uint8_t> test_vector(test_ptr, test_ptr + sizeof(int));
+	char buffer[] = "msg";
+	uint8_t* buffer_ptr = reinterpret_cast<uint8_t*>(buffer);
+	std::vector<uint8_t> test2(buffer_ptr, buffer_ptr + sizeof(buffer));
+
+	private_key.hash(test_vector, 25);
+	Botan::BigInt r2 = private_key.collision(test_vector, 25, test2);
 }
 
 // Just a simple file with functionality of future library
