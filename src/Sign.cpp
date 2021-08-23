@@ -4,7 +4,7 @@
 
 
 Signer::Signer(const Botan::Private_Key& key,
-			const TH_PrivateKey& hash_key,
+			const ITH_PrivateKey& hash_key,
 			Botan::RandomNumberGenerator& rng)
 {
 	m_signer = new Botan::PK_Signer(key, rng, "EMSA1(SHA-224)");

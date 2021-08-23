@@ -2,13 +2,13 @@
 #include <iostream>
 #include "TrapdoorHash.hpp"
 
-TH_HashKey::TH_HashKey(const Botan::BigInt& p, const Botan::BigInt& g, const Botan::BigInt& y)
+TH_DLA_HashKey::TH_DLA_HashKey(const Botan::BigInt& p, const Botan::BigInt& g, const Botan::BigInt& y)
 {
 	m_key_dl_group = Botan::DL_Group(p, (p-1) / 2, g);
 	m_key_y = y; 
 }
 
-void TH_HashKey::print()
+void TH_DLA_HashKey::print()
 {
 	std::cout << "Trapdoor Hash Key" << std::endl;
 	std::cout << "p = " << m_key_dl_group.get_p() << std::endl;
@@ -18,14 +18,14 @@ void TH_HashKey::print()
 	std::cout << std::endl;
 }
 
-TH_PrivateKey::TH_PrivateKey(const Botan::BigInt& p,const Botan::BigInt& g, 
+TH_DLA_PrivateKey::TH_DLA_PrivateKey(const Botan::BigInt& p,const Botan::BigInt& g, 
 					const Botan::BigInt& y, const Botan::BigInt& alpha)
-					: TH_HashKey(p, g, y)
+					: TH_DLA_HashKey(p, g, y)
 {
 	m_key_alpha = alpha;
 }
 
-TH_PrivateKey::TH_PrivateKey(Botan::RandomNumberGenerator& rng, 
+TH_DLA_PrivateKey::TH_DLA_PrivateKey(Botan::RandomNumberGenerator& rng, 
 				size_t bits)
 {
 	m_key_dl_group = Botan::DL_Group(rng, Botan::DL_Group::PrimeType::Strong, bits, 0);
@@ -33,9 +33,9 @@ TH_PrivateKey::TH_PrivateKey(Botan::RandomNumberGenerator& rng,
 	m_key_y = m_key_dl_group.power_g_p(m_key_alpha);
 }
 
-void TH_PrivateKey::print()
+void TH_DLA_PrivateKey::print()
 {
-	TH_HashKey::print();
+	TH_DLA_HashKey::print();
 	std::cout << "Trapdoor Private Key" << std::endl;
 	std::cout << "alpha = " << m_key_alpha << std::endl;
 	std::cout << std::endl;
@@ -43,16 +43,16 @@ void TH_PrivateKey::print()
 
 /* -------------------------------- END OF KEY CODE AREA ---------------------*/
 
-Botan::BigInt TH_HashKey::hash(const std::vector<uint8_t> msg, const Botan::BigInt& r)
+Botan::BigInt TH_DLA_HashKey::hash(const Botan::BigInt& msg, const Botan::BigInt& r)
 {
-	Botan::BigInt i_msg(msg.data(), msg.size() ); 
-
 	std::cout << "Msg in int" << std::endl;
-	std::cout << i_msg << std::endl;
-	// As g is of order q
-	i_msg = m_key_dl_group.mod_q(i_msg);
+	std::cout << msg << std::endl;
 
-	Botan::BigInt hash_value = m_key_dl_group.multi_exponentiate(i_msg, m_key_y, r);
+	// As g is of order q
+	Botan::BigInt cropped_msg = m_key_dl_group.mod_q(msg);
+
+	Botan::BigInt hash_value = m_key_dl_group.multi_exponentiate(cropped_msg, m_key_y, r);
+
 	std::cout << "Calculated hash value: " << std::endl;
 	std::cout << hash_value << std::endl; 
 	std::cout << std::endl;
@@ -60,7 +60,7 @@ Botan::BigInt TH_HashKey::hash(const std::vector<uint8_t> msg, const Botan::BigI
 	return hash_value;
 }
 
-Botan::BigInt TH_PrivateKey::collision(const std::vector<uint8_t> msg1, 
+Botan::BigInt TH_DLA_PrivateKey::collision(const std::vector<uint8_t> msg1, 
 	const Botan::BigInt& r1, const std::vector<uint8_t> msg2)
 {
 	Botan::BigInt i_msg1(msg1.data(), msg1.size());
@@ -78,4 +78,10 @@ Botan::BigInt TH_PrivateKey::collision(const std::vector<uint8_t> msg1,
 	
 	std::cout << "r2 = " << r2 << std::endl;
 	return r2; 
+}
+
+Botan::BigInt TrapdoorHash::signature(const Botan::BigInt& r)
+{
+	Botan::BigInt msg(m_data);
+	return m_key.hash(msg, r);
 }

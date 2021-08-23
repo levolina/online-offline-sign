@@ -9,7 +9,7 @@ void ut_trapdoor_hash()
 {
 	Botan::AutoSeeded_RNG rng;
 	Botan::RSA_PrivateKey rsa_key(rng, 1024); 
-	TH_PrivateKey private_key(251387, 62849, 36711, 31862); 
+	TH_DLA_PrivateKey private_key(251387, 62849, 36711, 31862); 
 	private_key.print(); 
 
 	int test = 64; 

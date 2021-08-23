@@ -22,7 +22,7 @@ class Signer
 {
 private:
 	Botan::PK_Signer* m_signer;
-	TH_PrivateKey m_hash_key; 
+	ITH_PrivateKey m_hash_key; 
 	OfflinePhaseData m_offline_data; 
 
 public:
@@ -33,7 +33,7 @@ public:
 	 * @param rng the random generator to use
 	*/
 	Signer(const Botan::Private_Key& key,
-			const TH_PrivateKey& hash_key,
+			const ITH_PrivateKey& hash_key,
 			Botan::RandomNumberGenerator& rng);
 	
 	~Signer() { delete m_signer; };
@@ -79,14 +79,14 @@ class Verifier
 {
 private:
 	Botan::PK_Verifier* m_verifier; 
-	TH_HashKey m_hash_key;
+	ITH_HashKey m_hash_key;
 public:
 	/**
 	 * Construct a Verifier.
 	 * @param pub_key the public key to verify against
 	 */
 	Verifier(const Botan::Public_Key& pub_key,
-				const TH_HashKey& hash_key);
+				const ITH_HashKey& hash_key);
 
 	~Verifier() { delete m_verifier; };
 
