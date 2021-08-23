@@ -43,19 +43,21 @@ void TH_PrivateKey::print()
 
 /* -------------------------------- END OF KEY CODE AREA ---------------------*/
 
-void TH_HashKey::hash(const std::vector<uint8_t> msg, const Botan::BigInt& r)
+Botan::BigInt TH_HashKey::hash(const std::vector<uint8_t> msg, const Botan::BigInt& r)
 {
 	Botan::BigInt i_msg(msg.data(), msg.size() ); 
 
 	std::cout << "Msg in int" << std::endl;
 	std::cout << i_msg << std::endl;
-	i_msg = m_key_dl_group.mod_q(i_msg); // As g is of order q
+	// As g is of order q
+	i_msg = m_key_dl_group.mod_q(i_msg);
 
 	Botan::BigInt hash_value = m_key_dl_group.multi_exponentiate(i_msg, m_key_y, r);
 	std::cout << "Calculated hash value: " << std::endl;
 	std::cout << hash_value << std::endl; 
-	std::cout << std::endl; 
-	//return Botan::BigInt::encode_locked(hash_value);
+	std::cout << std::endl;
+
+	return hash_value;
 }
 
 Botan::BigInt TH_PrivateKey::collision(const std::vector<uint8_t> msg1, 

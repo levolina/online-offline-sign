@@ -47,9 +47,11 @@ public:
 	  * @param msg vector which contain data to calculate hash from
 	  * @param r random integer from Zq
 	*/
-	void hash(const std::vector<uint8_t> msg, const Botan::BigInt& r);
+	Botan::BigInt hash(const std::vector<uint8_t> msg, const Botan::BigInt& r);
 
 	void print();
+
+	size_t get_random_element_size() { return m_key_dl_group.q_bits(); };
 };
 
 /**
