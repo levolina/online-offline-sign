@@ -10,6 +10,7 @@ void ut_trapdoor_hash()
 	Botan::AutoSeeded_RNG rng;
 	Botan::RSA_PrivateKey rsa_key(rng, 1024); 
 	TH_DLA_PrivateKey private_key(251387, 62849, 36711, 31862); 
+	TH_DLA_HashKey hash_key = static_cast<TH_DLA_HashKey>(private_key);
 	private_key.print(); 
 
 	int test = 64; 
@@ -23,7 +24,7 @@ void ut_trapdoor_hash()
 	sig.offline_phase(rng);
 	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(test2, rng); 
 
-	Verifier ver(rsa_key, private_key);
+	Verifier ver(rsa_key, hash_key);
 	ver.verify_message(test2, signature.first, signature.second);
 }
 

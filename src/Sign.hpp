@@ -5,14 +5,14 @@
 #include <vector>
 #include "TrapdoorHash.hpp"
 
-
 struct OfflinePhaseData
 {
 	std::vector<uint8_t> msg; 
 	Botan::BigInt r; 
-	Botan::BigInt hash;
+	std::vector<uint8_t> hash;
 	std::vector<uint8_t> signature; 
 }; 
+
 /**
  * Class Signer. 
  * General method for combining any trapdoor hash family and any signature scheme 
@@ -22,7 +22,7 @@ class Signer
 {
 private:
 	Botan::PK_Signer* m_signer;
-	ITH_PrivateKey m_hash_key; 
+	ITH_PrivateKey* m_hash_key;
 	OfflinePhaseData m_offline_data; 
 
 public:
@@ -36,7 +36,7 @@ public:
 			const ITH_PrivateKey& hash_key,
 			Botan::RandomNumberGenerator& rng);
 	
-	~Signer() { delete m_signer; };
+	~Signer();
 
 	Signer(const Signer&) = delete;
 	Signer& operator=(const Signer&) = delete;
@@ -79,7 +79,7 @@ class Verifier
 {
 private:
 	Botan::PK_Verifier* m_verifier; 
-	ITH_HashKey m_hash_key;
+	ITH_HashKey* m_hash_key;
 public:
 	/**
 	 * Construct a Verifier.
@@ -88,7 +88,7 @@ public:
 	Verifier(const Botan::Public_Key& pub_key,
 				const ITH_HashKey& hash_key);
 
-	~Verifier() { delete m_verifier; };
+	~Verifier();
 
 	Verifier& operator=(const Verifier&) = delete; 
 	Verifier(const Verifier&) = delete;
