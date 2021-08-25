@@ -22,7 +22,7 @@ P.S. needs at least gcc 8.0
 
 On Windows:
 ```
-python configure.py --cc=msvc --os=windows --cpu=generic --prefix=
+python configure.py --cc=msvc --os=windows --cpu=generic --prefix=.
 nmake
 nmake check
 nmake install
