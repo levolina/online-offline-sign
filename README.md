@@ -17,6 +17,7 @@ make
 ```
 git clone --recurse-submodules https://github.com/levolina/online-offline-sign
 cd online-offline-sign
+<dependency build> 
 msbuild.exe online-offline-signature.sln
 ```
 
@@ -32,6 +33,7 @@ On **Linux**:
 	./configure.py --prefix=
 	make
 	make check
+	nmake install
 
 > Needs at least gcc 8.0
 
