@@ -5,24 +5,22 @@
 class ITH_HashKey 
 {
 public:
-	ITH_HashKey() = default;
-	ITH_HashKey(const ITH_HashKey& other) = default;
-	ITH_HashKey& operator=(const ITH_HashKey& other) = default;
-	virtual ~ITH_HashKey() = default;
+	ITH_HashKey() {};
+	virtual ~ITH_HashKey() {};
 
-	virtual size_t get_random_element_size() const; 
-	virtual Botan::BigInt hash(const Botan::BigInt& msg, const Botan::BigInt& r);
+	virtual size_t get_random_element_size() const = 0; 
+	virtual Botan::BigInt hash(const Botan::BigInt& msg,
+		const Botan::BigInt& r) = 0;
 };
 
 class ITH_PrivateKey : public ITH_HashKey
 {
 public:
-	ITH_PrivateKey() = default;
-	ITH_PrivateKey(const ITH_PrivateKey& other) = default;
-	ITH_PrivateKey& operator=(const ITH_PrivateKey& other) = default;
-	virtual ~ITH_PrivateKey() = default;
+	ITH_PrivateKey() {};
+	virtual ~ITH_PrivateKey() {};
 
-	virtual Botan::BigInt collision(const std::vector<uint8_t> msg1, const Botan::BigInt& r1, const std::vector<uint8_t> msg2);
+	virtual Botan::BigInt collision(const std::vector<uint8_t> msg1, const Botan::BigInt& r1, 
+		const std::vector<uint8_t> msg2) = 0;
 };
 
 /**

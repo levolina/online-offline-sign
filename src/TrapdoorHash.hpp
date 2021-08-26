@@ -12,7 +12,7 @@
 class TrapdoorHash
 {
 private:
-	ITH_HashKey m_key;
+	ITH_HashKey* m_key;
 public:
 	TrapdoorHash() {};
 
