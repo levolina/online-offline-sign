@@ -2,17 +2,16 @@
 #include <iostream>
 
 Signer::Signer(const Botan::Private_Key& key,
-			const ITH_PrivateKey& hash_key,
+			ITH_PrivateKey* hash_key,
 			Botan::RandomNumberGenerator& rng)
 {
 	m_signer = new Botan::PK_Signer(key, rng, "EMSA1(SHA-224)");
-	m_hash_key = new ITH_PrivateKey(hash_key); 
+	m_hash_key = hash_key; 
 }
 
 Signer::~Signer()
 {
 	delete m_signer;
-	delete m_hash_key;
 }
 
 void Signer::offline_phase(Botan::RandomNumberGenerator& rng)
@@ -21,7 +20,7 @@ void Signer::offline_phase(Botan::RandomNumberGenerator& rng)
 	// Choose a random (m', r') and compute hash(m', r')
 	std::vector<uint8_t> rand_msg(RAND_MSG_LEN); 
 	rng.random_vec(rand_msg, RAND_MSG_LEN);
-	TrapdoorHash hash_function(*m_hash_key);
+	TrapdoorHash hash_function(m_hash_key);
 	
 	m_offline_data.msg = rand_msg;
 	m_offline_data.r.randomize(rng, hash_function.get_random_element_size(), false);
@@ -41,7 +40,7 @@ std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_
 									Botan::RandomNumberGenerator& rng)
 {
 	std::vector<uint8_t> in_vector(in, in + length);
-	TrapdoorHash hash_function(*m_hash_key);
+	TrapdoorHash hash_function(m_hash_key);
 
 	Botan::BigInt r = hash_function.collision(*m_hash_key, m_offline_data.msg, m_offline_data.r, in_vector);
 
@@ -59,16 +58,15 @@ std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_
 /* ----------------------------------------------------------------------------*/ 
 
 Verifier::Verifier(const Botan::Public_Key& pub_key,
-				const ITH_HashKey& hash_key)
+				ITH_HashKey* hash_key)
 {
 	m_verifier = new Botan::PK_Verifier(pub_key, "EMSA1(SHA-224)");
-	m_hash_key = new ITH_HashKey(hash_key);
+	m_hash_key = hash_key;
 }
 
 Verifier::~Verifier()
 {
 	delete m_verifier; 
-	delete m_hash_key;
 }
 
 bool Verifier::verify_message(const uint8_t msg[], size_t msg_length,
@@ -76,7 +74,7 @@ bool Verifier::verify_message(const uint8_t msg[], size_t msg_length,
 						const Botan::BigInt& r)
 {
 	std::vector<uint8_t> msg_vector(msg, msg + msg_length);
-	TrapdoorHash hash_function(*m_hash_key);
+	TrapdoorHash hash_function(m_hash_key);
 
 	std::vector<uint8_t> hash_value = hash_function.hash(msg_vector, r); 
 

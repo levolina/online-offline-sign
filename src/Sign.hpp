@@ -33,7 +33,7 @@ public:
 	 * @param rng the random generator to use
 	*/
 	Signer(const Botan::Private_Key& key,
-			const ITH_PrivateKey& hash_key,
+			ITH_PrivateKey* hash_key,
 			Botan::RandomNumberGenerator& rng);
 	
 	~Signer();
@@ -86,7 +86,7 @@ public:
 	 * @param pub_key the public key to verify against
 	 */
 	Verifier(const Botan::Public_Key& pub_key,
-				const ITH_HashKey& hash_key);
+				ITH_HashKey* hash_key);
 
 	~Verifier();
 

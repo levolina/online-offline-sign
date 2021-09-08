@@ -16,12 +16,12 @@ private:
 public:
 	TrapdoorHash() {};
 
-	TrapdoorHash(const ITH_HashKey& private_key)
+	TrapdoorHash(ITH_HashKey* private_key)
 	{
 		m_key = private_key;
 	};
 
-	~TrapdoorHash(); 
+	~TrapdoorHash()=default; 
 	TrapdoorHash(const TrapdoorHash&) = delete;
 	TrapdoorHash& operator= (const TrapdoorHash&) = delete;
 
@@ -59,6 +59,6 @@ public:
 
 	size_t get_random_element_size()
 	{
-		return m_key.get_random_element_size();
+		return m_key->get_random_element_size();
 	}
 };

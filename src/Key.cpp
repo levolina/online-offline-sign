@@ -1,6 +1,7 @@
 #include "Key.hpp"
 
 TH_DLA_HashKey::TH_DLA_HashKey(const Botan::BigInt& p, const Botan::BigInt& g, const Botan::BigInt& y)
+	: ITH_HashKey()
 {
 	m_key_dl_group = Botan::DL_Group(p, (p-1) / 2, g);
 	m_key_y = y; 
@@ -18,7 +19,7 @@ void TH_DLA_HashKey::print()
 
 TH_DLA_PrivateKey::TH_DLA_PrivateKey(const Botan::BigInt& p,const Botan::BigInt& g, 
 					const Botan::BigInt& y, const Botan::BigInt& alpha)
-					: TH_DLA_HashKey(p, g, y)
+					: TH_DLA_HashKey(p, g, y), ITH_PrivateKey()
 {
 	m_key_alpha = alpha;
 }
