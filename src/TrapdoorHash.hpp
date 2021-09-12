@@ -11,15 +11,32 @@
  */
 class TrapdoorHash
 {
-private:
-	ITH_HashKey* m_key;
+private: 
+	ITH_HashKey* m_hash_key = nullptr;
+	ITH_PrivateKey* m_private_key = nullptr;
 public:
 	TrapdoorHash() {};
 
-	TrapdoorHash(ITH_HashKey* private_key)
+	TrapdoorHash(ITH_HashKey* hash_key)
 	{
-		m_key = private_key;
-	};
+		std::cout << "Init with HashKey" << std::endl;
+		if (hash_key == nullptr)
+		{
+			throw std::runtime_error("Error. Pointer is null"); 
+		}
+		m_hash_key = hash_key;
+	}
+
+	TrapdoorHash(ITH_PrivateKey* private_key)
+	{
+		std::cout << "Init with PrivateKey" << std::endl;
+		if (private_key == nullptr)
+		{
+			throw std::runtime_error("Error. Pointer is null"); 
+		}
+		m_private_key = private_key;
+		m_hash_key = private_key->hash_key();
+	}
 
 	~TrapdoorHash()=default; 
 	TrapdoorHash(const TrapdoorHash&) = delete;
@@ -51,14 +68,18 @@ public:
 	/**
 	 * Find a collision with use of trapdoor
 	 */
-	Botan::BigInt collision(ITH_PrivateKey& private_key, const std::vector<uint8_t> msg1, 
-							const Botan::BigInt& r1, const std::vector<uint8_t> msg2)
+	Botan::BigInt collision(const std::vector<uint8_t> msg1, const Botan::BigInt& r1, 
+							const std::vector<uint8_t> msg2)
 	{
-		return private_key.collision(msg1, r1, msg2);
+		if (m_private_key == nullptr)
+		{
+			throw std::runtime_error("Error. Private key isn\'t set");
+		}
+		return m_private_key->collision(msg1, r1, msg2);
 	}
 
 	size_t get_random_element_size()
 	{
-		return m_key->get_random_element_size();
+		return m_hash_key->get_random_element_size();
 	}
 };

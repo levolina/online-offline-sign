@@ -18,11 +18,11 @@ void ut_trapdoor_hash()
 	uint8_t* buffer_ptr = reinterpret_cast<uint8_t*>(buffer);
 	std::vector<uint8_t> test_vector(buffer_ptr, buffer_ptr + sizeof(buffer));
 
-	Signer sig(rsa_key, &private_key, rng);
+	Signer sig(&rsa_key, &private_key, rng);
 	sig.offline_phase(rng);
 	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(test_vector, rng); 
 
-	Verifier ver(rsa_key, hash_key);
+	Verifier ver(&rsa_key, hash_key);
 	ver.verify_message(test_vector, signature.first, signature.second);
 }
 
@@ -39,11 +39,12 @@ void ut_random_generated_key()
 	uint8_t* buffer_ptr = reinterpret_cast<uint8_t*>(buffer);
 	std::vector<uint8_t> test_vector(buffer_ptr, buffer_ptr + sizeof(buffer));
 
-	Signer sig(rsa_key, &private_key, rng);
+	Signer sig(&rsa_key, &private_key, rng);
 	sig.offline_phase(rng);
+	
 	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(test_vector, rng); 
 
-	Verifier ver(rsa_key, hash_key);
+	Verifier ver(&rsa_key, hash_key);
 	ver.verify_message(test_vector, signature.first, signature.second);
 }
 

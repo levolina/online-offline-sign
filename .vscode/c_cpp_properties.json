@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/deps/botan/include/botan"
+                "${workspaceFolder}/deps/botan/build/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

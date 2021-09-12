@@ -21,8 +21,8 @@ struct OfflinePhaseData
 class Signer 
 {
 private:
-	Botan::PK_Signer* m_signer;
-	ITH_PrivateKey* m_hash_key;
+	Botan::PK_Signer* m_signer = nullptr;
+	ITH_PrivateKey* m_hash_key = nullptr;
 	OfflinePhaseData m_offline_data; 
 
 public:
@@ -32,7 +32,7 @@ public:
 	 * @param hash_key the key of hash
 	 * @param rng the random generator to use
 	*/
-	Signer(const Botan::Private_Key& key,
+	Signer(const Botan::Private_Key* key,
 			ITH_PrivateKey* hash_key,
 			Botan::RandomNumberGenerator& rng);
 	
@@ -78,14 +78,14 @@ public:
 class Verifier
 {
 private:
-	Botan::PK_Verifier* m_verifier; 
-	ITH_HashKey* m_hash_key;
+	Botan::PK_Verifier* m_verifier = nullptr; 
+	ITH_HashKey* m_hash_key = nullptr;
 public:
 	/**
 	 * Construct a Verifier.
 	 * @param pub_key the public key to verify against
 	 */
-	Verifier(const Botan::Public_Key& pub_key,
+	Verifier(const Botan::Public_Key* pub_key,
 				ITH_HashKey* hash_key);
 
 	~Verifier();

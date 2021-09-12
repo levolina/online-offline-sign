@@ -8,11 +8,11 @@ public:
 	ITH_HashKey() {};
 	ITH_HashKey(Botan::RandomNumberGenerator& rng, size_t bits);
 	ITH_HashKey(const ITH_HashKey &obj);
+	virtual ~ITH_HashKey() {};
 
 	virtual size_t get_random_element_size() const = 0; 
 	virtual Botan::BigInt hash(const Botan::BigInt& msg,
 		const Botan::BigInt& r) = 0;
-	virtual ~ITH_HashKey() {};
 };
 
 class ITH_PrivateKey : public ITH_HashKey
@@ -22,12 +22,11 @@ public:
 	ITH_PrivateKey(Botan::RandomNumberGenerator& rng, size_t bits);
 	ITH_PrivateKey(const ITH_PrivateKey &obj);
 
+	virtual ITH_HashKey* hash_key() = 0;
+	virtual ~ITH_PrivateKey() {};
+
 	virtual Botan::BigInt collision(const std::vector<uint8_t> msg1, const Botan::BigInt& r1, 
 		const std::vector<uint8_t> msg2) = 0;
-
-	virtual ITH_HashKey* hash_key() = 0;
-
-	virtual ~ITH_PrivateKey() {};
 };
 
 /**
@@ -41,16 +40,16 @@ protected:
 	Botan::BigInt m_key_y; 
 public:
 	TH_DLA_HashKey()=default;
-	/**
-	 * Construct a hash key from the specified parameters
-	 */
 
-	TH_DLA_HashKey(TH_DLA_HashKey &other)
+	TH_DLA_HashKey(const TH_DLA_HashKey &other)
 	{
 		m_key_dl_group = other.m_key_dl_group;
 		m_key_y = other.m_key_y;
 	}
 
+	/**
+	 * Construct a hash key from the specified parameters
+	 */
 	TH_DLA_HashKey(const Botan::BigInt& p, const Botan::BigInt& g, const Botan::BigInt& y);
 
 	/**
@@ -107,8 +106,8 @@ private:
 	Botan::BigInt m_key_alpha;
 public:
 	TH_DLA_PrivateKey()=default;
-
-	TH_DLA_PrivateKey(TH_DLA_PrivateKey &other)
+	
+	TH_DLA_PrivateKey(const TH_DLA_PrivateKey &other)
 	{
 		m_key_alpha = other.m_key_alpha;
 	}
