@@ -5,14 +5,14 @@
 #include <vector>
 #include "TrapdoorHash.hpp"
 
-
 struct OfflinePhaseData
 {
 	std::vector<uint8_t> msg; 
 	Botan::BigInt r; 
-	Botan::BigInt hash;
+	std::vector<uint8_t> hash;
 	std::vector<uint8_t> signature; 
 }; 
+
 /**
  * Class Signer. 
  * General method for combining any trapdoor hash family and any signature scheme 
@@ -21,8 +21,8 @@ struct OfflinePhaseData
 class Signer 
 {
 private:
-	Botan::PK_Signer* m_signer;
-	TH_PrivateKey m_hash_key; 
+	Botan::PK_Signer* m_signer = nullptr;
+	ITH_PrivateKey* m_hash_key = nullptr;
 	OfflinePhaseData m_offline_data; 
 
 public:
@@ -32,11 +32,11 @@ public:
 	 * @param hash_key the key of hash
 	 * @param rng the random generator to use
 	*/
-	Signer(const Botan::Private_Key& key,
-			const TH_PrivateKey& hash_key,
+	Signer(const Botan::Private_Key* key,
+			ITH_PrivateKey* hash_key,
 			Botan::RandomNumberGenerator& rng);
 	
-	~Signer() { delete m_signer; };
+	~Signer();
 
 	Signer(const Signer&) = delete;
 	Signer& operator=(const Signer&) = delete;
@@ -78,17 +78,17 @@ public:
 class Verifier
 {
 private:
-	Botan::PK_Verifier* m_verifier; 
-	TH_HashKey m_hash_key;
+	Botan::PK_Verifier* m_verifier = nullptr; 
+	ITH_HashKey* m_hash_key = nullptr;
 public:
 	/**
 	 * Construct a Verifier.
 	 * @param pub_key the public key to verify against
 	 */
-	Verifier(const Botan::Public_Key& pub_key,
-				const TH_HashKey& hash_key);
+	Verifier(const Botan::Public_Key* pub_key,
+				ITH_HashKey* hash_key);
 
-	~Verifier() { delete m_verifier; };
+	~Verifier();
 
 	Verifier& operator=(const Verifier&) = delete; 
 	Verifier(const Verifier&) = delete;

@@ -36,5 +36,4 @@ bin
 obj
 
 # Editor specific dir
-.vscode
 .vs

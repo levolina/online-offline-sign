@@ -1,46 +1,58 @@
 #include "Sign.hpp"
 #include <iostream>
 
-
-
-Signer::Signer(const Botan::Private_Key& key,
-			const TH_PrivateKey& hash_key,
+Signer::Signer(const Botan::Private_Key* key,
+			ITH_PrivateKey* hash_key,
 			Botan::RandomNumberGenerator& rng)
 {
-	m_signer = new Botan::PK_Signer(key, rng, "EMSA1(SHA-224)");
+	m_signer = new Botan::PK_Signer(*key, rng, "EMSA1(SHA-224)");
 	m_hash_key = hash_key;
+	
+}
+
+Signer::~Signer()
+{
+	delete m_signer;
 }
 
 void Signer::offline_phase(Botan::RandomNumberGenerator& rng)
 {
-	size_t random_value_size = m_hash_key.get_random_element_size();
-	Botan::BigInt random_msg(rng, 2048, false);
-	const uint8_t* random_msg_ptr = reinterpret_cast<const uint8_t*>(random_msg.data());
+	#define RAND_MSG_LEN 256
+	// Choose a random (m', r') and compute hash(m', r')
+	std::vector<uint8_t> rand_msg(RAND_MSG_LEN); 
+	rng.random_vec(rand_msg, RAND_MSG_LEN);
+	TrapdoorHash hash_function(m_hash_key);
 	
-	std::vector<uint8_t> V(random_msg_ptr, random_msg_ptr + random_msg.bytes());
-	
-	m_offline_data.msg = V;
-	m_offline_data.r.randomize(rng, random_value_size, false);
+	m_offline_data.msg = rand_msg;
+	m_offline_data.r.randomize(rng, hash_function.get_random_element_size(), false);
+	std::cout << "2\n";
+	m_offline_data.hash = hash_function.hash(m_offline_data.msg, m_offline_data.r);
+	std::cout << "2\n";
 
+	// DEBUG
 	std::cout << "Precomputed values: " << std::endl; 
-	std::cout << "m = " << random_msg << std::endl;
+	std::cout << "m = " << Botan::BigInt(rand_msg) << std::endl;
 	std::cout << "r = " << m_offline_data.r << std::endl; 
 
-	m_offline_data.hash = m_hash_key.hash(V, m_offline_data.r);
-
+	// Run the signature algorithm with the signing key
 	const uint8_t* temp_hash_ptr = reinterpret_cast<const uint8_t*>(m_offline_data.hash.data());
-	m_signer->update(temp_hash_ptr, m_offline_data.hash.bytes()); 
-
-	m_offline_data.signature = m_signer->signature(rng);
+	m_offline_data.signature = m_signer->sign_message(m_offline_data.hash, rng);
 }
 
 std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_t in[], size_t length,
 									Botan::RandomNumberGenerator& rng)
 {
-	std::vector<uint8_t> in_vector(in, in + length);
-	Botan::BigInt r = m_hash_key.collision(m_offline_data.msg, m_offline_data.r, in_vector);
+	if (m_hash_key == nullptr)
+	{
+		throw std::runtime_error("Hash Key pointer is null");
+	}
 
-	if(m_hash_key.hash(m_offline_data.msg, m_offline_data.r) == m_hash_key.hash(in_vector, r))
+	std::vector<uint8_t> in_vector(in, in + length);
+	TrapdoorHash hash_function(m_hash_key);
+
+	Botan::BigInt r = hash_function.collision( m_offline_data.msg, m_offline_data.r, in_vector);
+
+	if(hash_function.hash(m_offline_data.msg, m_offline_data.r) == hash_function.hash(in_vector, r))
 	{
 		std::cout << "Correct collision find by trapdoor" << std::endl;
 	}
@@ -53,11 +65,16 @@ std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_
 
 /* ----------------------------------------------------------------------------*/ 
 
-Verifier::Verifier(const Botan::Public_Key& pub_key,
-				const TH_HashKey& hash_key)
+Verifier::Verifier(const Botan::Public_Key* pub_key,
+				ITH_HashKey* hash_key)
 {
-	m_verifier = new Botan::PK_Verifier(pub_key, "EMSA1(SHA-224)");
+	m_verifier = new Botan::PK_Verifier(*pub_key, "EMSA1(SHA-224)");
 	m_hash_key = hash_key;
+}
+
+Verifier::~Verifier()
+{
+	delete m_verifier; 
 }
 
 bool Verifier::verify_message(const uint8_t msg[], size_t msg_length,
@@ -65,12 +82,13 @@ bool Verifier::verify_message(const uint8_t msg[], size_t msg_length,
 						const Botan::BigInt& r)
 {
 	std::vector<uint8_t> msg_vector(msg, msg + msg_length);
-	Botan::BigInt hash_value = m_hash_key.hash(msg_vector, r); 
+	TrapdoorHash hash_function(m_hash_key);
 
-	const uint8_t* temp_hash_ptr = reinterpret_cast<const uint8_t*>(hash_value.data());
-	bool b_correct = m_verifier->verify_message(temp_hash_ptr, hash_value.bytes(), 
-								sig, sig_length);
+	std::vector<uint8_t> hash_value = hash_function.hash(msg_vector, r); 
 
+	bool b_correct = m_verifier->verify_message(hash_value.data(), hash_value.size(), sig, sig_length);
+
+	// DEBUG
 	if(b_correct)
 	{
 		std::cout << "True" << std::endl;

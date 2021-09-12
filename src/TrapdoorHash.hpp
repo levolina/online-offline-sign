@@ -1,145 +1,85 @@
 #include <botan/bigint.h>
+#include "Key.hpp"
 #include <botan/secmem.h>
-#include <botan/dl_group.h>
 #include <botan/rng.h>
 #include <botan/buf_comp.h>
 #include <botan/numthry.h>
 #include <iostream>
-
-class ITH_HashKey 
-{
-public:
-	ITH_HashKey() =default;
-	ITH_HashKey(const ITH_HashKey& other) = default;
-	ITH_HashKey& operator=(const ITH_HashKey& other) = default;
-	virtual ~ITH_HashKey() = default;
-};
-
-class ITH_PrivateKey : public ITH_HashKey
-{
-public:
-	ITH_PrivateKey() = default;
-	ITH_PrivateKey(const ITH_PrivateKey& other) = default;
-	ITH_PrivateKey& operator=(const ITH_PrivateKey& other) = default;
-	virtual ~ITH_PrivateKey() = default;
-
-	//virtual ITH_HashKey get_hash_key();
-	//virtual bool check();
-};
-
-/**
- * The public hash key for trapdoor hash family
- */
-class TH_HashKey : public ITH_HashKey
-{
-protected:
-	Botan::DL_Group m_key_dl_group;
-	Botan::BigInt m_key_y; 
-public:
-	TH_HashKey() {};
-	/**
-	 * Construct a hash key from the specified parameters
-	 */
-	TH_HashKey(const Botan::BigInt& p, const Botan::BigInt& g, const Botan::BigInt& y);
-
-	/**
-	  * Calculate hash value
-	  * @param msg vector which contain data to calculate hash from
-	  * @param r random integer from Zq
-	*/
-	Botan::BigInt hash(const std::vector<uint8_t> msg, const Botan::BigInt& r);
-
-	void print();
-
-	size_t get_random_element_size() { return m_key_dl_group.q_bits(); };
-};
-
-/**
- * The private key for rapdoor hash family 
- */
-class TH_PrivateKey: public ITH_PrivateKey, public TH_HashKey
-{
-private:
-	Botan::BigInt m_key_alpha;
-public:
-	TH_PrivateKey() {};
-	/**
-	 * Construct a private key from the specified parameters
-	 */
-	TH_PrivateKey(const Botan::BigInt& p, const Botan::BigInt& g, 
-				const Botan::BigInt& y, const Botan::BigInt& alpha);
-	
-	/**
-	 * Generate a new private key with the specified bit length
-	 */
-	TH_PrivateKey(Botan::RandomNumberGenerator &rng, 
-					size_t bits); 
-	
-	/** 
-	 * Find collision using tradoor key [r2]
-	 * Such as hash(msg1, r1) = hash(msg2, r2)
-	 */
-	Botan::BigInt collision(const std::vector<uint8_t> msg1, const Botan::BigInt& r1, const std::vector<uint8_t> msg2);
-	
-	void print();
-}; 
 
 /**
  * The Trapdoor hash family
  */
 class TrapdoorHash
 {
-private:
-	TH_PrivateKey m_key;
-	std::vector<uint8_t> m_data;
+private: 
+	ITH_HashKey* m_hash_key = nullptr;
+	ITH_PrivateKey* m_private_key = nullptr;
 public:
 	TrapdoorHash() {};
 
-	TrapdoorHash(const TH_PrivateKey& private_key)
+	TrapdoorHash(ITH_HashKey* hash_key)
 	{
-		m_key = private_key;
-	};
+		std::cout << "Init with HashKey" << std::endl;
+		if (hash_key == nullptr)
+		{
+			throw std::runtime_error("Error. Pointer is null"); 
+		}
+		m_hash_key = hash_key;
+	}
 
-	//TrapdoorHash(const TH_HashKey& hash_key);
+	TrapdoorHash(ITH_PrivateKey* private_key)
+	{
+		std::cout << "Init with PrivateKey" << std::endl;
+		if (private_key == nullptr)
+		{
+			throw std::runtime_error("Error. Pointer is null"); 
+		}
+		m_private_key = private_key;
+		m_hash_key = private_key->hash_key();
+	}
 
-	~TrapdoorHash(); 
-
+	~TrapdoorHash()=default; 
 	TrapdoorHash(const TrapdoorHash&) = delete;
 	TrapdoorHash& operator= (const TrapdoorHash&) = delete;
 
 	/**
-	 * Add a message part (single byte).
-	 * @param in byte to add 
-	 */
-	void update(const uint8_t in) { update(&in, 1); }
-
-	/**
-	 * Add a message part.
-	 * @param in the message part to add as a byte array
+	 * Hash a message all in one go
+	 * @param in the message to hash as a byte array
 	 * @param length the length of the above byte array
+	 * @param r random element
+	 * @return hash value
+	 */
+	std::vector<uint8_t> hash(const uint8_t in[], size_t length,
+								const Botan::BigInt& r);
+
+	/**
+	 * Hash a message.
+	 * @param in the message to hash
+	 * @param rng the hash to use
+	 * @return hash value
 	*/
-	void update(const uint8_t in[], size_t length)
-	{
-		std::vector<uint8_t> vec(in, in + length);
-		m_data.insert( m_data.end(), vec.begin(), vec.end() );
-	}
-
-	/**
-	 * Add a message part.
-	 * @param in the message part to add
-	 */
 	template<typename Alloc>
-	void update(const std::vector<uint8_t, Alloc>& in)
+	std::vector<uint8_t> hash(const std::vector<uint8_t, Alloc>& in,
+								const Botan::BigInt& r)
 	{
-		m_data += in;
+		return hash(in.data(), in.size(), r);
 	}
 
 	/**
-	 * Add a message part.
-	 * @param in the message part to add
+	 * Find a collision with use of trapdoor
 	 */
-	void update(const std::string& in)
+	Botan::BigInt collision(const std::vector<uint8_t> msg1, const Botan::BigInt& r1, 
+							const std::vector<uint8_t> msg2)
 	{
-		update(Botan::cast_char_ptr_to_uint8(in.data()), in.size());
+		if (m_private_key == nullptr)
+		{
+			throw std::runtime_error("Error. Private key isn\'t set");
+		}
+		return m_private_key->collision(msg1, r1, msg2);
+	}
+
+	size_t get_random_element_size()
+	{
+		return m_hash_key->get_random_element_size();
 	}
 };
