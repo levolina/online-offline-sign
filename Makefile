@@ -1,8 +1,8 @@
 #Compiler and Linker
 CC          := g++
 
-#The Target Binary Program
-TARGET      := program
+#The Target Library
+TARGET      := liboosign.so
 
 #Dependencies 
 BOTANDIR    := ./deps/botan
@@ -12,13 +12,15 @@ SRCDIR      := src
 INCDIR      := $(BOTANDIR)/build/include
 OBJDIR      := obj
 LIBDIR      := $(BOTANDIR)
+HDRDIR      := include
 TARGETDIR   := bin
 SRCEXT      := cpp
+HDREXT      := hpp
 DEPEXT      := d
 OBJEXT      := o
 
 #Flags, Libraries and Includes
-CFLAGS      :=
+CFLAGS      := -Wall -fPIC -O2 -g
 LIB         := -lstdc++ -lbotan-3
 INC         := -I$(INCDIR) -I/usr/local/include
 INCDEP      := -I$(INCDIR)
@@ -31,31 +33,28 @@ SHARE_LIBS  := -Wl,-R$(LIBDIR)
 SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
-#Defauilt Make
-all: directories $(TARGET)
+all: directories $(TARGET) $(HDRDIR)
 
 #Remake
-remake: cleaner all
+remake: clean all
 
 #Make the Directories
 directories:
 	@mkdir -p $(TARGETDIR)
 	@mkdir -p $(OBJDIR)
 
-#Clean only Objecst
-clean:
-	@$(RM) -rf $(OBJDIR)
-
 #Full Clean, Objects and Binaries
-cleaner: clean
+clean: 
 	@$(RM) -rf $(TARGETDIR)
+	@$(RM) -rf $(OBJDIR)
+	@$(RM) -rf $(HDRDIR)
 
 #Pull in dependency info for *existing* .o files
 -include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
 
-#Link
+#Library Link
 $(TARGET): $(OBJECTS)
-	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LDFLAGS) $(LIB) $(SHARE_LIBS)
+	$(CC) -shared -o $(TARGETDIR)/$(TARGET) $^ $(LDFLAGS) $(LIB) $(SHARE_LIBS)
 
 #Compile
 $(OBJDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
@@ -67,5 +66,9 @@ $(OBJDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 	@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.$(DEPEXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(OBJDIR)/$*.$(DEPEXT)
 	@rm -f $(OBJDIR)/$*.$(DEPEXT).tmp
 
+$(HDRDIR):
+	@mkdir -p $(HDRDIR)
+	@cp $(SRCDIR)/*.$(HDREXT) $(HDRDIR)
+
 #Non-File Targets
-.PHONY: all remake clean cleaner
+.PHONY: all remake clean

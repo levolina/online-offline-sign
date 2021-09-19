@@ -47,11 +47,11 @@ Botan::BigInt TH_DLA_HashKey::hash(const Botan::BigInt& msg, const Botan::BigInt
 	Botan::BigInt hash_value = m_key_dl_group.multi_exponentiate(cropped_msg, m_key_y, r);
 
 	// DEBUG
-	std::cout << "Msg in int" << std::endl;
+	/*std::cout << "Msg in int" << std::endl;
 	std::cout << msg << std::endl;
 	std::cout << "Calculated hash value: " << std::endl;
 	std::cout << hash_value << std::endl; 
-	std::cout << std::endl;
+	std::cout << std::endl;*/
 
 	return hash_value;
 }
@@ -68,13 +68,13 @@ Botan::BigInt TH_DLA_PrivateKey::collision(const std::vector<uint8_t> msg1,
 	i_msg2 = m_key_dl_group.mod_q(i_msg2);
 
 	// DEBUG
-	std::cout << "Msg1: " << i_msg1 << std::endl;
-	std::cout << "Msg2: " << i_msg2 << std::endl;
+	/*std::cout << "Msg1: " << i_msg1 << std::endl;
+	std::cout << "Msg2: " << i_msg2 << std::endl;*/
 
 	r2 = m_key_dl_group.mod_q( (i_msg1 - i_msg2) * m_key_dl_group.inverse_mod_q(m_key_alpha) + r1 );
 	
 	// DEBUG
-	std::cout << "r2 = " << r2 << std::endl;
+	/* std::cout << "r2 = " << r2 << std::endl; */
 
 	return r2; 
 }

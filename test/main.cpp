@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Sign.hpp"
+#include "../src/Sign.hpp"
 #include <botan/rsa.h>
 #include <botan/auto_rng.h>
 

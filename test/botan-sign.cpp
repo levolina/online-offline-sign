@@ -10,7 +10,7 @@
 #include <iostream>
 
 // RSA Signature generation
-void rsa_sign()
+/*void rsa_sign()
 {
 	std::cout << "- RSA Signature" << std::endl;
 	Botan::AutoSeeded_RNG rng;
@@ -95,4 +95,4 @@ int main()
 	ecdsa_sign();
 	gost_sign();
 	return 0;
-}
+}*/

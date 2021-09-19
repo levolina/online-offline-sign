@@ -7,7 +7,31 @@ Signer::Signer(const Botan::Private_Key* key,
 {
 	m_signer = new Botan::PK_Signer(*key, rng, "EMSA1(SHA-224)");
 	m_hash_key = hash_key;
-	
+
+	/*
+	#define BOTAN_RSA_USE_ASYNC
+
+ #if defined(BOTAN_RSA_USE_ASYNC)
+ 
+          auto future_j1 = Thread_Pool::global_instance().run([this, &m, &d1_mask]() {
+ #endif
+             const BigInt masked_d1 = m_private->get_d1() + (d1_mask * (m_private->get_p() - 1));
+             auto powm_d1_p = monty_precompute(m_private->m_monty_p, m_private->m_mod_p.reduce(m), powm_window);
+             BigInt j1 = monty_execute(*powm_d1_p, masked_d1, m_max_d1_bits);
+ 
+ #if defined(BOTAN_RSA_USE_ASYNC)
+          return j1;
+          });
+ #endif
+ 
+          const BigInt d2_mask(m_blinder.rng(), m_blinding_bits);
+          const BigInt masked_d2 = m_private->get_d2() + (d2_mask * (m_private->get_q() - 1));
+          auto powm_d2_q = monty_precompute(m_private->m_monty_q, m_private->m_mod_q.reduce(m), powm_window);
+          const BigInt j2 = monty_execute(*powm_d2_q, masked_d2, m_max_d2_bits);
+ 
+ #if defined(BOTAN_RSA_USE_ASYNC)
+          BigInt j1 = future_j1.get();
+ #endif*/
 }
 
 Signer::~Signer()
@@ -25,9 +49,7 @@ void Signer::offline_phase(Botan::RandomNumberGenerator& rng)
 	
 	m_offline_data.msg = rand_msg;
 	m_offline_data.r.randomize(rng, hash_function.get_random_element_size(), false);
-	std::cout << "2\n";
 	m_offline_data.hash = hash_function.hash(m_offline_data.msg, m_offline_data.r);
-	std::cout << "2\n";
 
 	// DEBUG
 	std::cout << "Precomputed values: " << std::endl; 
@@ -35,7 +57,6 @@ void Signer::offline_phase(Botan::RandomNumberGenerator& rng)
 	std::cout << "r = " << m_offline_data.r << std::endl; 
 
 	// Run the signature algorithm with the signing key
-	const uint8_t* temp_hash_ptr = reinterpret_cast<const uint8_t*>(m_offline_data.hash.data());
 	m_offline_data.signature = m_signer->sign_message(m_offline_data.hash, rng);
 }
 

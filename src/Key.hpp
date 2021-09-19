@@ -59,11 +59,6 @@ public:
 	*/
 	Botan::BigInt hash(const Botan::BigInt& msg, const Botan::BigInt& r) override; 
 
-	std::string name() const
-	{
-		return "A trapdoor hash family based on the Discrete Log Assumption";
-	}
-
 	void print();
 
 	/**
@@ -94,11 +89,12 @@ public:
 	 * Get y with y = g ^ alpha (mod p)
 	 * @return y
 	 */
-	const Botan::BigInt& get_y() const; 
+	const Botan::BigInt& get_y() const { return m_key_y; }; 
 };
 
 /**
  * The private key for trapdoor hash family 
+ * based on the Discrete Log Assumption
  */
 class TH_DLA_PrivateKey final: public TH_DLA_HashKey, public ITH_PrivateKey
 {
