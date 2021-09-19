@@ -51,7 +51,7 @@ clean:
 #Link
 $(TARGET): $(OBJECTS)
 	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LDFLAGS) $(LIB) $(SHARE_LIBS)
-	cp $(TARGETDIR)/$(TARGET) ../$(TARGETDIR)/
+	@cp $(TARGETDIR)/$(TARGET) ../$(TARGETDIR)/
 
 #Compile
 $(OBJDIR)/%.$(OBJEXT): ./%.$(SRCEXT)

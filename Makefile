@@ -20,7 +20,7 @@ DEPEXT      := d
 OBJEXT      := o
 
 #Flags, Libraries and Includes
-CFLAGS      := -Wall -fPIC -O2 -g
+CFLAGS      := -Wall -Wextra -fPIC -O2 -g
 LIB         := -lstdc++ -lbotan-3
 INC         := -I$(INCDIR)
 LDFLAGS     := -L$(LIBDIR)

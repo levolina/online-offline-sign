@@ -33,7 +33,7 @@ public:
  * The public hash key for trapdoor hash family 
  * based on the Discrete Log Assumption
  */
-class TH_DLA_HashKey : public virtual ITH_HashKey
+class TH_DLA_HashKey : public ITH_HashKey
 {
 protected:
 	Botan::DL_Group m_key_dl_group;
@@ -41,7 +41,7 @@ protected:
 public:
 	TH_DLA_HashKey()=default;
 
-	TH_DLA_HashKey(const TH_DLA_HashKey &other)
+	TH_DLA_HashKey(const TH_DLA_HashKey &other) : ITH_HashKey(other)
 	{
 		m_key_dl_group = other.m_key_dl_group;
 		m_key_y = other.m_key_y;
@@ -103,7 +103,7 @@ private:
 public:
 	TH_DLA_PrivateKey()=default;
 	
-	TH_DLA_PrivateKey(const TH_DLA_PrivateKey &other)
+	TH_DLA_PrivateKey(const TH_DLA_PrivateKey &other): TH_DLA_HashKey(other), ITH_PrivateKey(other)
 	{
 		m_key_alpha = other.m_key_alpha;
 	}

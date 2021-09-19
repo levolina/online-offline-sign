@@ -60,8 +60,7 @@ void Signer::offline_phase(Botan::RandomNumberGenerator& rng)
 	m_offline_data.signature = m_signer->sign_message(m_offline_data.hash, rng);
 }
 
-std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_t in[], size_t length,
-									Botan::RandomNumberGenerator& rng)
+std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_t in[], size_t length)
 {
 	if (m_hash_key == nullptr)
 	{
