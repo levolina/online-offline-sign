@@ -2,6 +2,12 @@
 #include <botan/bigint.h>
 #include <botan/dl_group.h>
 
+#ifdef DEBUG
+#define PRINT_DEBUG(msg) { std::cout << msg << std::endl; } 
+#else
+#define PRINT_DEBUG(msg)
+#endif
+
 class ITH_HashKey 
 {
 public:
