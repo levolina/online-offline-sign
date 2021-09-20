@@ -24,7 +24,6 @@ CFLAGS      := -Wall -Wextra -fPIC -O2 -g
 LIB         := -lstdc++ -lbotan-3
 INC         := -I$(INCDIR)
 LDFLAGS     := -L$(LIBDIR)
-#SHARE_LIBS  := -Wl,-R$(LIBDIR) -Wl,-R../bin
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
@@ -32,7 +31,7 @@ LDFLAGS     := -L$(LIBDIR)
 SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
-all: directories $(TARGET) test
+all: directories deps $(TARGET)  test
 
 #Remake
 remake: clean all
@@ -73,6 +72,9 @@ $(OBJDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 $(HDRDIR):
 	@mkdir -p $(HDRDIR)
 	@cp $(SRCDIR)/*.$(HDREXT) $(HDRDIR)
+
+deps: 
+	@cp ./deps/botan/libbotan-3.so.0 ./bin
 
 #Non-File Targets
 .PHONY: all remake clean

@@ -6,11 +6,12 @@ TARGET      := oosign_test
 
 #Dependencies 
 BOTANDIR    := ../deps/botan
+BENCHMARKDIR:= ../deps/benchmark
 
 #The Directories, Source, Includes, Objects, Binary
-INCDIR      := $(BOTANDIR)/build/include ../include
+INCDIR      := $(BOTANDIR)/build/include $(BENCHMARKDIR)/include ../include
 OBJDIR      := obj
-LIBDIR      := $(BOTANDIR)
+LIBDIR      := $(BOTANDIR) $(BENCHMARKDIR)/build/src
 TARGETDIR   := bin
 SRCEXT      := cpp
 DEPEXT      := d
@@ -18,10 +19,10 @@ OBJEXT      := o
 
 #Flags, Libraries and Includes
 CFLAGS      :=
-LIB         := -lstdc++ -lbotan-3 -loosign
+LIB         := -lstdc++ -lbotan-3 -loosign -lbenchmark -lpthread
 INC         := $(addprefix -I,$(INCDIR))
-LDFLAGS     := -L$(LIBDIR) -L../bin
-SHARE_LIBS  := -Wl,-R$(realpath ../bin) -Wl,-R$(realpath $(LIBDIR))
+LDFLAGS     := $(addprefix -L,$(LIBDIR)) -L../bin
+SHARE_LIBS  := -Wl,-R$(realpath ../bin) #-Wl,-R$(realpath $(LIBDIR))
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
