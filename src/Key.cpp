@@ -58,19 +58,18 @@ Botan::BigInt TH_DLA_HashKey::hash(const Botan::BigInt& msg, const Botan::BigInt
 Botan::BigInt TH_DLA_PrivateKey::collision(const std::vector<uint8_t> msg1, 
 	const Botan::BigInt& r1, const std::vector<uint8_t> msg2)
 {
-	Botan::BigInt i_msg1(msg1.data(), msg1.size());
-	Botan::BigInt i_msg2(msg2.data(), msg2.size());
+	Botan::BigInt i_msg1(msg1);
+	Botan::BigInt i_msg2(msg2);
 	Botan::BigInt r2 = 0;
 
 	// As g is of order q
 	i_msg1 = m_key_dl_group.mod_q(i_msg1);
 	i_msg2 = m_key_dl_group.mod_q(i_msg2);
 
-	PRINT_DEBUG("Msg1: " << i_msg1);
-	PRINT_DEBUG("Msg2: " << i_msg2);
-
 	r2 = m_key_dl_group.mod_q( (i_msg1 - i_msg2) * m_key_dl_group.inverse_mod_q(m_key_alpha) + r1 );
 	
+	PRINT_DEBUG("Msg1: " << i_msg1);
+	PRINT_DEBUG("Msg2: " << i_msg2);
 	PRINT_DEBUG("r2 = " << r2);
 
 	return r2; 

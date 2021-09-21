@@ -5,8 +5,6 @@
 #include <botan/dsa.h>
 #include <botan/ecdsa.h>
 #include <botan/ec_group.h>
-
-#include <botan/gost_3410.h>
 #include <botan/auto_rng.h>
 
 //Oosign 
@@ -16,280 +14,217 @@
 
 const uint8_t TEST_STR[] = "This is test string";
 
-// Botan RSA signature
-void botan_rsa_test_str_sign()
+// --------------- RSA --------------------
+static void signBotanRSA(benchmark::State& state) 
 {
 	Botan::AutoSeeded_RNG rng;
-	Botan::RSA_PrivateKey private_key(rng, 1024); 
+	Botan::RSA_PrivateKey private_key(rng, 2048); 
+	Botan::PK_Signer signer(private_key, rng, EMSA); 
+	std::vector<uint8_t> signature; 
+	bool result; 
+
+	for (auto _ : state)
+	{
+		signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
+	}
+}
+
+static void verifyBotanRSA(benchmark::State& state) 
+{
+	Botan::AutoSeeded_RNG rng;
+	Botan::RSA_PrivateKey private_key(rng, 2048); 
 	Botan::RSA_PublicKey public_key(private_key);
 	Botan::PK_Signer signer(private_key, rng, EMSA); 
+	std::vector<uint8_t> signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
 	Botan::PK_Verifier verifier(public_key, EMSA);
-	std::vector<uint8_t> signature; 
 	bool result; 
-	
-	// Sign data
-	signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
-	// Verify signature
-	verifier.update(TEST_STR, sizeof(TEST_STR));
-	result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
-}
 
-void botan_dsa_test_str_sign()
-{
-	Botan::AutoSeeded_RNG rng;
-	Botan::DSA_PrivateKey private_key(rng, Botan::DL_Group(rng, Botan::DL_Group::Strong, 1024));
-	Botan::DSA_PublicKey public_key(private_key);
-	Botan::PK_Signer signer(private_key, rng, EMSA); 
-	Botan::PK_Verifier verifier(public_key, EMSA);
-	std::vector<uint8_t> signature; 
-	bool result; 
-	
-	// Sign data
-	signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
-	// Verify signature
-	verifier.update(TEST_STR, sizeof(TEST_STR));
-	result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
-}
-
-void botan_ecdsa_test_str_sign()
-{
-	Botan::AutoSeeded_RNG rng;
-	// Generate ECDSA keypair
-	Botan::ECDSA_PrivateKey private_key(rng, Botan::EC_Group("secp521r1"));
-	Botan::ECDSA_PublicKey public_key(private_key);
-	Botan::PK_Signer signer(private_key, rng, EMSA); 
-	Botan::PK_Verifier verifier(public_key, EMSA);
-	std::vector<uint8_t> signature; 
-	bool result; 
-	
-	// Sign data
-	signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
-	// Verify signature
-	verifier.update(TEST_STR, sizeof(TEST_STR));
-	result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
-}
-
-void botan_gost_test_str_sign() 
-{
-	Botan::AutoSeeded_RNG rng;
-	Botan::GOST_3410_PrivateKey private_key(rng, Botan::EC_Group("secp521r1"));
-	Botan::GOST_3410_PublicKey public_key(private_key);
-	Botan::PK_Signer signer(private_key, rng, EMSA); 
-	Botan::PK_Verifier verifier(public_key, EMSA);
-	std::vector<uint8_t> signature; 
-	bool result; 
-	
-	// Sign data
-	signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
-	// Verify signature
-	verifier.update(TEST_STR, sizeof(TEST_STR));
-	result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
+	for (auto _ : state)
+	{
+		result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
+	}
 }
 
 // OOSIGN Implementation
-void oosign_rsa_test_str_sign()
+static void signOosignRSA(benchmark::State& state)
+{
+	Botan::AutoSeeded_RNG rng;
+	Botan::RSA_PrivateKey rsa_key(rng, 2048); 
+	TH_DLA_PrivateKey private_key(rng, 1024); 
+	Signer sig(&rsa_key, &private_key, rng);
+	std::pair<std::vector<uint8_t>, Botan::BigInt> signature;
+
+	sig.offline_phase(rng);
+	for (auto _ : state)
+	{
+		signature = sig.sign_message(TEST_STR, sizeof(TEST_STR)); 
+	}
+}
+
+// OOSIGN Implementation
+static void verifyOosignRSA(benchmark::State& state)
 {
 	Botan::AutoSeeded_RNG rng;
 	Botan::RSA_PrivateKey rsa_key(rng, 1024); 
 	TH_DLA_PrivateKey private_key(rng, 1024); 
 	TH_DLA_HashKey* hash_key = private_key.hash_key();
 	Signer sig(&rsa_key, &private_key, rng);
+	bool result;
 
 	sig.offline_phase(rng);
 	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(TEST_STR, sizeof(TEST_STR)); 
 
 	Verifier ver(&rsa_key, hash_key);
-	ver.verify_message(TEST_STR, sizeof(TEST_STR), signature.first.data(), signature.first.size(), signature.second);
-}
-
-void signBotanRSA(benchmark::State& state) 
-{
-	while (state.KeepRunning()) 
+	for (auto _ : state)
 	{
-		botan_rsa_test_str_sign();
+		result = ver.verify_message(TEST_STR, sizeof(TEST_STR), signature.first.data(), signature.first.size(), signature.second);
 	}
 }
 
-void signBotanDSA(benchmark::State& state) 
+// --------------- DSA --------------------
+static void signBotanDSA(benchmark::State& state)
 {
-	while (state.KeepRunning()) 
+	Botan::AutoSeeded_RNG rng;
+	Botan::DSA_PrivateKey private_key(rng, Botan::DL_Group(rng, Botan::DL_Group::Strong, 1024));
+	Botan::DSA_PublicKey public_key(private_key);
+	Botan::PK_Signer signer(private_key, rng, EMSA); 
+	std::vector<uint8_t> signature; 
+	bool result; 
+	
+	for (auto _ : state)
 	{
-		botan_dsa_test_str_sign();
+		signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
 	}
 }
 
-void signBotanECDSA(benchmark::State& state) 
+static void verifyBotanDSA(benchmark::State& state) 
 {
-	while (state.KeepRunning()) 
+	Botan::AutoSeeded_RNG rng;
+	Botan::DSA_PrivateKey private_key(rng, Botan::DL_Group(rng, Botan::DL_Group::Strong, 1024));
+	Botan::DSA_PublicKey public_key(private_key);
+	Botan::PK_Signer signer(private_key, rng, EMSA); 
+	std::vector<uint8_t> signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
+	Botan::PK_Verifier verifier(public_key, EMSA);
+	bool result; 
+
+	for (auto _ : state)
 	{
-		botan_ecdsa_test_str_sign();
+		result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
 	}
 }
 
-void signBotanGOST(benchmark::State& state)
-{
-	while (state.KeepRunning()) 
-	{
-		botan_gost_test_str_sign();
-	}
-}
-
-void OosignRSA(benchmark::State& state) 
-{
-	while (state.KeepRunning()) 
-	{
-		oosign_rsa_test_str_sign();
-	}
-}
-
-// Register the function as a benchmark
-BENCHMARK(signBotanRSA);
-BENCHMARK(signBotanDSA);
-BENCHMARK(signBotanECDSA);
-BENCHMARK(OosignRSA);
-
-BENCHMARK_MAIN();
-
-// RSA Signature generation
-/*void rsa_sign()
-{
-	std::cout << "- RSA Signature" << std::endl;
-	Botan::AutoSeeded_RNG rng;
-	Botan::RSA_PrivateKey rsa_key(rng, 1024); 
-
-	std::string text("This is a tasty burger!");
-	std::vector<uint8_t> data(text.data(),text.data()+text.length());
-	// sign data
-	Botan::PK_Signer signer(rsa_key, rng, "EMSA1(SHA-256)");
-	signer.update(data);
-	std::vector<uint8_t> signature = signer.signature(rng);
-	std::cout << "Signature:" << std::endl << Botan::hex_encode(signature);
-	// verify signature
-	Botan::PK_Verifier verifier(rsa_key, "EMSA1(SHA-256)");
-	verifier.update(data);
-	std::cout << std::endl << "is " << (verifier.check_signature(signature)? "valid" : "invalid") << std::endl;
-}
-
-void dsa_sign()
-{
-	std::cout << "- DSA Signature" << std::endl;
-	Botan::AutoSeeded_RNG rng;
-	Botan::DSA_PrivateKey dsa_key(rng, Botan::DL_Group(rng, Botan::DL_Group::PrimeType::Strong, 1024)); 
-
-	std::string text("This is a tasty burger!");
-	std::vector<uint8_t> data(text.data(),text.data()+text.length());
-	// sign data
-	Botan::PK_Signer signer(dsa_key, rng, "EMSA1(SHA-256)");
-	signer.update(data);
-	std::vector<uint8_t> signature = signer.signature(rng);
-	std::cout << "Signature:" << std::endl << Botan::hex_encode(signature);
-	// verify signature
-	Botan::PK_Verifier verifier(dsa_key, "EMSA1(SHA-256)");
-	verifier.update(data);
-	std::cout << std::endl << "is " << (verifier.check_signature(signature)? "valid" : "invalid") << std::endl;
-}
-
-void ecdsa_sign() 
-{
-	std::cout << "- ECDSA Signature" << std::endl;
-	Botan::AutoSeeded_RNG rng;
-	// Generate ECDSA keypair
-	Botan::ECDSA_PrivateKey key(rng, Botan::EC_Group("secp521r1"));
-
-	std::string text("This is a tasty burger!");
-	std::vector<uint8_t> data(text.data(),text.data()+text.length());
-	// sign data
-	Botan::PK_Signer signer(key, rng, "EMSA1(SHA-256)");
-	signer.update(data);
-	std::vector<uint8_t> signature = signer.signature(rng);
-	std::cout << "Signature:" << std::endl << Botan::hex_encode(signature);
-	// verify signature
-	Botan::PK_Verifier verifier(key, "EMSA1(SHA-256)");
-	verifier.update(data);
-	std::cout << std::endl << "is " << (verifier.check_signature(signature)? "valid" : "invalid") << std::endl;
-}
-
-void gost_sign() 
-{
-	std::cout << "- GOST2001_SIGN Signature" << std::endl;
-	Botan::AutoSeeded_RNG rng;
-	// Generate ECDSA keypair
-	Botan::GOST_3410_PrivateKey key(rng, Botan::EC_Group("secp521r1"));
-
-	std::string text("This is a tasty burger!");
-	std::vector<uint8_t> data(text.data(),text.data()+text.length());
-	// sign data
-	Botan::PK_Signer signer(key, rng, "EMSA1(SHA-256)");
-	signer.update(data);
-	std::vector<uint8_t> signature = signer.signature(rng);
-	std::cout << "Signature:" << std::endl << Botan::hex_encode(signature);
-	// verify signature
-	Botan::PK_Verifier verifier(key, "EMSA1(SHA-256)");
-	verifier.update(data);
-	std::cout << std::endl << "is " << (verifier.check_signature(signature)? "valid" : "invalid") << std::endl;
-}
-
-int main()
-{
-	rsa_sign();
-	dsa_sign();
-	ecdsa_sign();
-	gost_sign();
-	return 0;
-}*/
-
-
-// Test with predefine hash key
-/*void ut_trapdoor_hash()
+// OOSIGN Implementation
+static void signOosignDSA(benchmark::State& state)
 {
 	Botan::AutoSeeded_RNG rng;
-	Botan::RSA_PrivateKey rsa_key(rng, 1024); 
-	TH_DLA_PrivateKey private_key(251387, 62849, 36711, 31862); 
-	TH_DLA_HashKey* hash_key = private_key.hash_key();
-	private_key.print(); 
+	Botan::DSA_PrivateKey dsa_key(rng, Botan::DL_Group(rng, Botan::DL_Group::Strong, 1024)); 
+	TH_DLA_PrivateKey private_key(rng, 1024); 
+	Signer sig(&dsa_key, &private_key, rng);
+	std::pair<std::vector<uint8_t>, Botan::BigInt> signature;
 
-	char buffer[] = "msg";
-	uint8_t* buffer_ptr = reinterpret_cast<uint8_t*>(buffer);
-	std::vector<uint8_t> test_vector(buffer_ptr, buffer_ptr + sizeof(buffer));
-
-	Signer sig(&rsa_key, &private_key, rng);
 	sig.offline_phase(rng);
-	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(test_vector); 
-
-	Verifier ver(&rsa_key, hash_key);
-	ver.verify_message(test_vector, signature.first, signature.second);
+	for (auto _ : state)
+	{
+		signature = sig.sign_message(TEST_STR, sizeof(TEST_STR)); 
+	}
 }
 
-// Test with random generated key 
-void ut_random_generated_key()
+static void verifyOosignDSA(benchmark::State& state)
 {
 	Botan::AutoSeeded_RNG rng;
-	Botan::RSA_PrivateKey rsa_key(rng, 1024); 
+	Botan::DSA_PrivateKey dsa_key(rng, Botan::DL_Group(rng, Botan::DL_Group::Strong, 1024)); 
 	TH_DLA_PrivateKey private_key(rng, 1024); 
 	TH_DLA_HashKey* hash_key = private_key.hash_key();
-	private_key.print(); 
+	Signer sig(&dsa_key, &private_key, rng);
 
-	char buffer[] = "msg";
-	uint8_t* buffer_ptr = reinterpret_cast<uint8_t*>(buffer);
-	std::vector<uint8_t> test_vector(buffer_ptr, buffer_ptr + sizeof(buffer));
-
-	Signer sig(&rsa_key, &private_key, rng);
 	sig.offline_phase(rng);
-	
-	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(test_vector); 
+	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(TEST_STR, sizeof(TEST_STR)); 
 
-	Verifier ver(&rsa_key, hash_key);
-	ver.verify_message(test_vector, signature.first, signature.second);
+	Verifier ver(&dsa_key, hash_key);
+	for (auto _ : state)
+	{
+		ver.verify_message(TEST_STR, sizeof(TEST_STR), signature.first.data(), signature.first.size(), signature.second);
+	}
 }
 
-// Just a simple file with functionality of future library
-int main()
+// --------------- ECDSA --------------------
+static void signBotanECDSA(benchmark::State& state)
 {
-	std::cout << "THF template started" << std::endl; 
-	ut_trapdoor_hash();
-	std::cout << "THF template finished" << std::endl; 
+	Botan::AutoSeeded_RNG rng;
+	// Generate ECDSA keypair
+	Botan::ECDSA_PrivateKey private_key(rng, Botan::EC_Group("secp521r1"));
+	Botan::PK_Signer signer(private_key, rng, EMSA); 
+	std::vector<uint8_t> signature; 
+	bool result; 
+	
+	for (auto _ : state)
+	{
+		signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
+	}
+}
 
-	std::cout << "THF template started" << std::endl; 
-	ut_random_generated_key();
-	std::cout << "THF template finished" << std::endl; 
-}*/
+// OOSIGN Implementation
+static void signOosignECDSA(benchmark::State& state)
+{
+	Botan::AutoSeeded_RNG rng;
+	Botan::ECDSA_PrivateKey ecdsa_key(rng, Botan::EC_Group("secp521r1"));
+	TH_DLA_PrivateKey private_key(rng, 1024); 
+	Signer sig(&ecdsa_key, &private_key, rng);
+	std::pair<std::vector<uint8_t>, Botan::BigInt> signature;
+
+	sig.offline_phase(rng);
+	for (auto _ : state)
+	{
+		signature = sig.sign_message(TEST_STR, sizeof(TEST_STR)); 
+	}
+}
+
+static void verifyBotanECDSA(benchmark::State& state) 
+{
+	Botan::AutoSeeded_RNG rng;
+	Botan::ECDSA_PrivateKey private_key(rng, Botan::EC_Group("secp521r1"));
+	Botan::ECDSA_PublicKey public_key(private_key);
+	Botan::PK_Signer signer(private_key, rng, EMSA); 
+	std::vector<uint8_t> signature = signer.sign_message(TEST_STR,sizeof(TEST_STR), rng);
+	Botan::PK_Verifier verifier(public_key, EMSA);
+	bool result; 
+
+	for (auto _ : state)
+	{
+		result = verifier.verify_message(TEST_STR, sizeof(TEST_STR), signature.data(), signature.size());
+	}
+}
+
+static void verifyOosignECDSA(benchmark::State& state)
+{
+	Botan::AutoSeeded_RNG rng;
+	Botan::DSA_PrivateKey ecdsa_key(rng, Botan::DL_Group(rng, Botan::DL_Group::Strong, 1024)); 
+	TH_DLA_PrivateKey private_key(rng, 1024); 
+	TH_DLA_HashKey* hash_key = private_key.hash_key();
+	Signer sig(&ecdsa_key, &private_key, rng);
+	bool result;
+
+	sig.offline_phase(rng);
+	std::pair<std::vector<uint8_t>, Botan::BigInt> signature = sig.sign_message(TEST_STR, sizeof(TEST_STR)); 
+
+	Verifier ver(&ecdsa_key, hash_key);
+	for (auto _ : state)
+	{
+		result = ver.verify_message(TEST_STR, sizeof(TEST_STR), signature.first.data(), signature.first.size(), signature.second);
+	}
+}
+
+BENCHMARK(signBotanRSA);
+BENCHMARK(verifyBotanRSA);
+BENCHMARK(signOosignRSA);
+BENCHMARK(verifyOosignRSA);
+BENCHMARK(signBotanDSA);
+BENCHMARK(verifyBotanDSA);
+BENCHMARK(signOosignDSA);
+BENCHMARK(verifyOosignDSA);
+BENCHMARK(signBotanECDSA);
+BENCHMARK(verifyBotanECDSA);
+BENCHMARK(signOosignECDSA);
+BENCHMARK(verifyOosignECDSA);
+
+BENCHMARK_MAIN();

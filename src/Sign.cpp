@@ -52,7 +52,7 @@ std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_
 
 	Botan::BigInt r = hash_function.collision( m_offline_data.msg, m_offline_data.r, in_vector);
 
-	if(hash_function.hash(m_offline_data.msg, m_offline_data.r) != hash_function.hash(in_vector, r))
+	if(m_offline_data.hash != hash_function.hash(in_vector, r))
 	{
 		throw std::runtime_error("Incorrect collision"); 
 	}
@@ -77,11 +77,8 @@ bool Verifier::verify_message(const uint8_t msg[], size_t msg_length,
 						const uint8_t sig[], size_t sig_length, 
 						const Botan::BigInt& r)
 {
-	std::vector<uint8_t> msg_vector(msg, msg + msg_length);
 	TrapdoorHash hash_function(m_hash_key);
-
-	std::vector<uint8_t> hash_value = hash_function.hash(msg_vector, r); 
-
+	std::vector<uint8_t> hash_value = hash_function.hash(msg, msg_length, r); 
 	bool b_correct = m_verifier->verify_message(hash_value.data(), hash_value.size(), sig, sig_length);
 
 	PRINT_DEBUG(b_correct);
