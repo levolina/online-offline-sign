@@ -19,7 +19,7 @@ public:
 
 	TrapdoorHash(ITH_HashKey* hash_key)
 	{
-		std::cout << "Init with HashKey" << std::endl;
+		PRINT_DEBUG("Init with Hash Key");
 		if (hash_key == nullptr)
 		{
 			throw std::runtime_error("Error. Pointer is null"); 
@@ -29,7 +29,7 @@ public:
 
 	TrapdoorHash(ITH_PrivateKey* private_key)
 	{
-		std::cout << "Init with PrivateKey" << std::endl;
+		PRINT_DEBUG("Init with Private Key");
 		if (private_key == nullptr)
 		{
 			throw std::runtime_error("Error. Pointer is null"); 

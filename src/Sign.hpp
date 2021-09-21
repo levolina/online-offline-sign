@@ -53,8 +53,7 @@ public:
 	 * @param rng the rng to use
 	 * @return signature
 	 */
-	std::pair<std::vector<uint8_t>, Botan::BigInt> sign_message(const uint8_t in[], size_t length,
-									Botan::RandomNumberGenerator& rng);
+	std::pair<std::vector<uint8_t>, Botan::BigInt> sign_message(const uint8_t in[], size_t length);
 
 	/**
 	 * Sign a message.
@@ -63,10 +62,9 @@ public:
 	 * @return signature
 	 */
 	template<typename Alloc>
-	std::pair<std::vector<uint8_t>, Botan::BigInt> sign_message(const std::vector<uint8_t, Alloc>& in,
-									Botan::RandomNumberGenerator& rng)
+	std::pair<std::vector<uint8_t>, Botan::BigInt> sign_message(const std::vector<uint8_t, Alloc>& in)
 	{
-		return sign_message(in.data(), in.size(), rng);
+		return sign_message(in.data(), in.size());
 	}
 };
 

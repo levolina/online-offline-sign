@@ -2,6 +2,12 @@
 #include <botan/bigint.h>
 #include <botan/dl_group.h>
 
+#ifdef DEBUG
+#define PRINT_DEBUG(msg) { std::cout << msg << std::endl; } 
+#else
+#define PRINT_DEBUG(msg)
+#endif
+
 class ITH_HashKey 
 {
 public:
@@ -33,7 +39,7 @@ public:
  * The public hash key for trapdoor hash family 
  * based on the Discrete Log Assumption
  */
-class TH_DLA_HashKey : public virtual ITH_HashKey
+class TH_DLA_HashKey : public ITH_HashKey
 {
 protected:
 	Botan::DL_Group m_key_dl_group;
@@ -41,7 +47,7 @@ protected:
 public:
 	TH_DLA_HashKey()=default;
 
-	TH_DLA_HashKey(const TH_DLA_HashKey &other)
+	TH_DLA_HashKey(const TH_DLA_HashKey &other) : ITH_HashKey(other)
 	{
 		m_key_dl_group = other.m_key_dl_group;
 		m_key_y = other.m_key_y;
@@ -58,11 +64,6 @@ public:
 	  * @param r random BigInt from Zq
 	*/
 	Botan::BigInt hash(const Botan::BigInt& msg, const Botan::BigInt& r) override; 
-
-	std::string name() const
-	{
-		return "A trapdoor hash family based on the Discrete Log Assumption";
-	}
 
 	void print();
 
@@ -94,11 +95,12 @@ public:
 	 * Get y with y = g ^ alpha (mod p)
 	 * @return y
 	 */
-	const Botan::BigInt& get_y() const; 
+	const Botan::BigInt& get_y() const { return m_key_y; }; 
 };
 
 /**
  * The private key for trapdoor hash family 
+ * based on the Discrete Log Assumption
  */
 class TH_DLA_PrivateKey final: public TH_DLA_HashKey, public ITH_PrivateKey
 {
@@ -107,7 +109,7 @@ private:
 public:
 	TH_DLA_PrivateKey()=default;
 	
-	TH_DLA_PrivateKey(const TH_DLA_PrivateKey &other)
+	TH_DLA_PrivateKey(const TH_DLA_PrivateKey &other): TH_DLA_HashKey(other), ITH_PrivateKey(other)
 	{
 		m_key_alpha = other.m_key_alpha;
 	}

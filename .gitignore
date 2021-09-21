@@ -34,6 +34,7 @@
 # Pre-build and build
 bin
 obj
+include
 
 # Editor specific dir
 .vs
