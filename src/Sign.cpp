@@ -51,11 +51,6 @@ std::pair<std::vector<uint8_t>, Botan::BigInt> Signer::sign_message(const uint8_
 	TrapdoorHash hash_function(m_hash_key);
 
 	Botan::BigInt r = hash_function.collision( m_offline_data.msg, m_offline_data.r, in_vector);
-
-	if(m_offline_data.hash != hash_function.hash(in_vector, r))
-	{
-		throw std::runtime_error("Incorrect collision"); 
-	}
 	return std::make_pair(m_offline_data.signature, r);
 }
 
