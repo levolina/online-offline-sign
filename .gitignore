@@ -32,9 +32,7 @@
 *.app
 
 # Pre-build and build
-bin
-obj
-include
+build
 
 # Editor specific dir
 .vs

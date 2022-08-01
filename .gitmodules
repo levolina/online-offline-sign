@@ -1,6 +1,0 @@
-[submodule "deps/botan"]
-	path = deps/botan
-	url = https://github.com/randombit/botan.git
-[submodule "deps/benchmark"]
-	path = deps/benchmark
-	url = git@github.com:google/benchmark.git
