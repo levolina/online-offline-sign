@@ -1,26 +1,11 @@
-
-* Build library. Now Makefile and Visual Studio project produces executable file from main. Idea was to make not an executable
-but library, so some additional flags should be added to transform exe -> dll(so). 
-
-* Test for correctness. As much test cases as you can
-
-* Windows build needs more attention
+* Windows build
 
 * Run phases in parallel threads. 
-
-* Check perfomance of new signature generation algorithm. To compare with function in Botan. Maybe use Google benchmark or Visual Studio profiler or smth else. 
 
 * In Botan lib Montgomery computation is available. It will be good to check can we use it for perfomance improvements. 
 Better to do this in separate branch to compare with main branch. 
 
 * Add more comments for comfort work with code
-
-* For our project we don't need full Botan library but only some part of it. It would be good to create minimal Botan build. 
-Delete unnesessary modules from build. Botan provides such opportunity. 
-Smth like this:
-  ./configure.py --minimized-build --enable-modules=rsa,eme_oaep,emsa_pssr
-Read more there:
-https://botan.randombit.net/handbook/building.html
 
 * Catch exception. Main goal is to add them where it is posiible
 
